@@ -14,6 +14,10 @@ CORS(
 # Load the Whisper model
 model = whisper.load_model("large")  # Choose between "tiny", "base", "small", "medium", "large" based on your needs and resources
 
+@app.route("/")
+def index():
+    return {"STATUS": "SUCCESS", "CODE": 200}
+
 @app.route("/whisper_asr", methods=["POST"])
 def perform_asr():
   # Check if the post request has the file part
