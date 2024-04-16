@@ -44,7 +44,15 @@ def perform_asr():
         file.save(filepath)
 
         try:
-            process = subprocess.Popen(['python', "./perform_asr.py", filepath, email], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+          with subprocess.Popen(['python', "./perform_asr.py", filepath, email], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as proc:
+            # Read output and errors from the subprocess
+            stdout, stderr = proc.communicate()
+
+            # Check if there were any errors
+            if proc.returncode != 0:
+                print("Error running script:", stderr)
+            else:
+                print("Script output:", stdout)
             # # Process the audio file
             # result_segments = model.transcribe(filepath)
 
