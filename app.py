@@ -1,10 +1,8 @@
 import whisper
 from flask import Flask, request, jsonify
 import os
+from werkzeug.utils import secure_filename
 from flask_cors import CORS
-from pydub import AudioSegment
-import numpy as np
-import io
 
 app = Flask(__name__)
 
@@ -16,6 +14,9 @@ CORS(
 
 # Load the Whisper model
 model = whisper.load_model("large")  # Choose between "tiny", "base", "small", "medium", "large" based on your needs and resources
+UPLOAD_FOLDER = "./temp_files"
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 @app.route("/")
 def index():
@@ -23,34 +24,40 @@ def index():
 
 @app.route("/whisper_asr", methods=["POST"])
 def perform_asr():
+    # Check if the post request has the file part
     if 'audio_file' not in request.files:
-        return jsonify({'error': 'No file part in the request'}), 400
-
+        return jsonify({'error': 'No file part'}), 400
     file = request.files['audio_file']
+
     if file.filename == '':
-        return jsonify({'error': 'No file selected'}), 400
+        return jsonify({'error': 'No selected file'}), 400
 
     if file and file.filename.lower().endswith('.mp3'):
+        # Ensure filename is secure
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
         try:
-            # Read the file into an audio segment
-            audio_segment = AudioSegment.from_file(io.BytesIO(file.read()), format="mp3")
-            # Convert audio segment to numpy array
-            samples = np.array(audio_segment.get_array_of_samples())
+            # Process the audio file
+            result_segments = model.transcribe(filepath)
 
-            if audio_segment.channels == 2:  # Check if audio is stereo
-                samples = samples.reshape((-1, 2))
-                samples = samples.mean(axis=1)  # Convert to mono by averaging channels
-
-            # At this point, 'samples' is a numpy array; you can pass this to Whisper
-            result_segments = model.transcribe(samples)
-
-            transcription_details = [{
-                'start_time': segment['start'],
-                'end_time': segment['end'],
-                'text': segment['text']
-            } for segment in result_segments["segments"]]
+            transcription_details = []
+            for segment in result_segments["segments"]:
+                transcription_details.append({
+                    'start_time': segment['start'],
+                    'end_time': segment['end'],
+                    'text': segment['text']
+                })
+            
+            # Once processing is complete, remove the file
+            os.remove(filepath)
             return jsonify(transcription_details)
+
         except Exception as e:
+            # If something goes wrong, remove the file and return an error
+            os.remove(filepath)
             return jsonify({'error': 'Failed to process the file', 'details': str(e)}), 500
+
     else:
         return jsonify({'error': 'File format not supported. Please upload an MP3 file.'}), 400
