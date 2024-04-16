@@ -211,16 +211,12 @@ def combine_speaker_and_transcription(speaker_results, transcription_details):
     return combined_transcript, speaker_summaries
 
 def main():
-  with open('./output.txt', 'a') as file:
     audio_file_path = sys.argv[1]
     email = sys.argv[2]
-    file.write(f"{audio_file_path} + {email}\n")
     speaker_results = speaker_diarization(audio_file_path)
-    file.write("HERE 1\n")
     # Load the Whisper model
-    model = whisper.load_model("large")  # Choose between "tiny", "base", "small", "medium", "large" based on your needs and resources
+    model = whisper.load_model("base")  # Choose between "tiny", "base", "small", "medium", "large" based on your needs and resources
     result_segments = model.transcribe(audio_file_path)
-    file.write("HERE 2\n")
     transcription_details = []
     for segment in result_segments["segments"]:
         transcription_details.append({
@@ -230,19 +226,14 @@ def main():
         })
 
     full_transcript, speaker_summaries = combine_speaker_and_transcription(speaker_results, transcription_details)
-    file.write("HERE 3")
-    file.write(full_transcript)
     transcript_file, file_id = display_transcript(full_transcript)
-    file.write("HERE 4")
     # Email the result
     send_email(file_id, email)
-    file.write("HERE 5")
 
     with open(f"./transcripts/{transcript_file}", 'rb') as f:
       files = {'file': (transcript_file, f)}
       # POST request to the server
       requests.post("https://py.laneterraleverapi.org/transcripts/upload", files=files)
-    file.write("HERE 6")
     
 
 
