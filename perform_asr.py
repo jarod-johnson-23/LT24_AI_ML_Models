@@ -215,7 +215,7 @@ def main():
     email = sys.argv[2]
     speaker_results = speaker_diarization(audio_file_path)
     # Load the Whisper model
-    model = whisper.load_model("base")  # Choose between "tiny", "base", "small", "medium", "large" based on your needs and resources
+    model = whisper.load_model("large")  # Choose between "tiny", "base", "small", "medium", "large" based on your needs and resources
     result_segments = model.transcribe(audio_file_path)
     transcription_details = []
     for segment in result_segments["segments"]:
