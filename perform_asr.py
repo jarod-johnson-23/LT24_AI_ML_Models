@@ -233,7 +233,8 @@ def main():
     with open(f"./transcripts/{transcript_file}", 'rb') as f:
       files = {'file': (transcript_file, f)}
       # POST request to the server
-      requests.post("https://py.laneterraleverapi.org/transcripts/upload", files=files)
+      response = requests.post("https://py.laneterraleverapi.org/transcripts/upload", files=files)
+      print(response)
     
 
 
