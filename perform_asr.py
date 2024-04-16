@@ -7,9 +7,6 @@ import whisper
 import requests
 import uuid
 
-# Load the Whisper model
-model = whisper.load_model("large")  # Choose between "tiny", "base", "small", "medium", "large" based on your needs and resources
-
 def generate_unique_filename(extension=".txt"):
     unique_filename = str(uuid.uuid4()) + extension
     return unique_filename
@@ -218,6 +215,8 @@ def main():
     file.write(f"{audio_file_path} + {email}")
     speaker_results = speaker_diarization(audio_file_path)
     file.write("HERE 1")
+    # Load the Whisper model
+    model = whisper.load_model("large")  # Choose between "tiny", "base", "small", "medium", "large" based on your needs and resources
     result_segments = model.transcribe(audio_file_path)
     file.write("HERE 2")
     transcription_details = []
