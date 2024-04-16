@@ -7,6 +7,8 @@ import whisper
 import requests
 import uuid
 
+load_dotenv()
+
 def generate_unique_filename(extension=".txt"):
     unique_filename = str(uuid.uuid4()) + extension
     return unique_filename
