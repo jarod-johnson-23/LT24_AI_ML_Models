@@ -226,9 +226,9 @@ def main():
         })
 
     full_transcript, speaker_summaries = combine_speaker_and_transcription(speaker_results, transcription_details)
-    transcript_file, file_id = display_transcript(full_transcript)
+    transcript_file = display_transcript(full_transcript)
     # Email the result
-    send_email(file_id, email)
+    send_email(transcript_file, email)
 
     with open(f"./transcripts/{transcript_file}", 'rb') as f:
       files = {'file': (transcript_file, f)}
