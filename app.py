@@ -44,7 +44,7 @@ def perform_asr():
         file.save(filepath)
 
         try:
-            process = subprocess.Popen(['python', app.config['SCRIPT_PATH'], filepath, email], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process = subprocess.Popen(['python', "./perform_asr.py", filepath, email], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             # # Process the audio file
             # result_segments = model.transcribe(filepath)
 
