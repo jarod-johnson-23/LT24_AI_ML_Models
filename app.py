@@ -1,5 +1,5 @@
 import whisper
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, abort
 import os
 import boto3
 from werkzeug.utils import secure_filename
@@ -20,11 +20,28 @@ load_dotenv()
 
 UPLOAD_FOLDER = "./temp_files"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+FILE_DIRECTORY = "./transcripts"
 
 
 @app.route("/")
 def index():
     return {"STATUS": "SUCCESS", "CODE": 200}
+
+@app.route('/get-file')
+def get_file():
+    # Get the filename from query parameters
+    file_name = request.args.get('file_name')
+    
+    if not file_name:
+        # If no filename is provided, return an error response
+        return abort(400, description="No file name provided.")
+
+    try:
+        # Securely send the file from the specified directory
+        return send_from_directory(FILE_DIRECTORY, file_name, as_attachment=True)
+    except FileNotFoundError:
+        # If the file does not exist, return a 404 error
+        return abort(404, description="File not found.")
 
 @app.route("/whisper_asr", methods=["POST"])
 def perform_asr():
