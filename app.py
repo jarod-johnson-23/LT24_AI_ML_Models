@@ -45,42 +45,27 @@ def get_file():
 
 @app.route("/whisper_asr", methods=["POST"])
 def perform_asr():
-    # Check if the post request has the file part
-    if 'audio_file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
+    # Check if a file or email part is missing in the request
+    if 'audio_file' not in request.files or 'email' not in request.form:
+        return jsonify({'error': 'No file or email part'}), 400
+    
     file = request.files['audio_file']
+    email = request.form.get('email')
 
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
-    if file and file.filename.lower().endswith('.mp3'):
-        # Ensure filename is secure
-        email = request.form['email']
+    allowed_extensions = {'.mp3', '.wav'}
+    if file and any(file.filename.lower().endswith(ext) for ext in allowed_extensions):
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
 
         try:
             process = subprocess.Popen(['python', "./perform_asr.py", filepath, email], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            # # Process the audio file
-            # result_segments = model.transcribe(filepath)
-
-            # transcription_details = []
-            # for segment in result_segments["segments"]:
-            #     transcription_details.append({
-            #         'start_time': segment['start'],
-            #         'end_time': segment['end'],
-            #         'text': segment['text']
-            #     })
-            
-            # # Once processing is complete, remove the file
-            # os.remove(filepath)
             return jsonify({'message': 'File Being Processed'}), 200
-
         except Exception as e:
-            # If something goes wrong, remove the file and return an error
             os.remove(filepath)
             return jsonify({'error': 'Failed to process the file', 'details': str(e)}), 500
 
-    else:
-        return jsonify({'error': 'File format not supported. Please upload an MP3 file.'}), 400
+    return jsonify({'error': 'File format not supported. Please upload an MP3 or WAV file.'}), 400
